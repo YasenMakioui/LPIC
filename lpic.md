@@ -222,3 +222,50 @@ Common desktop implementations: VNC, Xrdp, NX and SPICE
 ### Viewing VNC
 
 Employs the Remote Frame Buffer (RFB) protocol.
+
+This protocol allows a user on the client side to send GUI commands, such as mouse clicks, to the server. The server sends desktop frames back to the client's monitor.
+
+VNC server operates at TCP port 5900 + n where n equals to the display number.
+
+On the client you point to the VNC server using IP + TCP port or display number.
+
+VNC server requires authentication which is not the Linux system authentication.
+
+The VNC server allows access from java-enable web browser in TCP port 5800 + n.
+
+HTML5 client web browsers are suported as well.
+
+Two types of desktop UIs for VNC clients:
+
+* Persistent: When apps are opened, if you left and then come back and unlock the screen, the GUI is in the same state it was left.
+
+* Static: No saved state GUI. When you left and come back, a default desktop is shown.
+
+Positive benefits of VNC:
+
+* A lot of flexibility in providing remote desktops
+* Desktops are available for multiple users
+* Both persistent and static desktops are available
+* It can provide desktops on an on-demand basis
+* An SSH tunnel can be employed via ssh or a client viewer command-line option to encrypt traffic
+
+Potential difficulties or concerns with VNC:
+
+* Handle sonly mouse movements and keystrokes. Does not hanlde file and audio transfer or printing services for the client
+* No traffic encryption by default so OpenSSH tunneling needs to be set up
+* VNC server password is saved in plain text in the server config file
+
+Alternatives that implement the VNC technology: TigerVNC
+
+TigerVNC works on Linux and Windows.
+
+To install it we need to install the tigervnc-server package name.
+
+For the client we need to install the tigervnc package.
+
+Server commands: vncserver and vncconfig
+Cliend commands: vncviewer
+
+Example client command: `vncviewer example.com:1` being 1 the display number.
+
+When employing the VNC server we need to make sure to employ openSSH port forwarding.
