@@ -4,7 +4,7 @@
 
 GUI components:
 
-Desktop environment (-) Windows manager (-) Display server
+Desktop environment <-> Windows manager <-> Display server
 
 Each Desktop environment has its own default window manager.
 
@@ -269,3 +269,215 @@ Cliend commands: vncviewer
 Example client command: `vncviewer example.com:1` being 1 the display number.
 
 When employing the VNC server we need to make sure to employ openSSH port forwarding.
+
+### Grasping Xrdp
+
+Uses Remote desktop protocol (RDP) and uses X11rdp or Xvnc to manage the GUI session.
+
+Only provides server side. For the client we can use FreeRDP, rdesktop and Microsoft Remote Desktop Connection.
+
+Xrdp comes system ready. After installing we can enable the port 3389 on the firewall to allow access.
+
+Configuration file: `/etc/xrdp/xrdp.ini`
+
+We can modify `security_layer` in xrdp config file to set the transport security:
+
+* negotiate: Is the default option and sets the security method to the highest the client can use
+* tls: Uses SSL encryption
+* Rdp: Sets the method to standard RDP security. Not safe from man-in-the-middle attacks
+
+### Exploring NX
+
+This protocol was opensource but later in time became closed source.
+
+Benefits:
+
+* Fast response times thanks to compressed X11 data and caching
+* Faster than VNC-based products
+* OpenSSH tunneling by default
+* Support for multiple simultaneous users through a single network port
+
+Open source variations: FreeNX and X2Go
+
+### Studying SPICE
+
+Primary focus is providing remode desktop access to virtual machines.
+
+Spice is platform independent.
+
+Features:
+
+* Spice's client side uses multiple data socket connections, and you can have multiple clients.
+* Spice delivers desktop experience speeds similar to a local connection.
+* Spice consumes low amounts of CPU
+* Spice allows high-quality video streaming
+* Spice provides live migration features
+
+Spice has a single server implementation but several clients: remote-viewer and GNOME Boxes
+
+Strong security features: Can encrypt traffic using TLS. Auth implemented using Simple Authentication and Security Layer (SASL) so Kerberos can be used.
+
+For X11 we can use X.Org-created Xspice to act as a standalone Spice server as well as an X server.
+
+## Understanding Localization
+
+### Character Sets
+
+A character set defines a standard code used to interpret and display characters in a language:
+
+* ASCII
+* ISO-8859: From ISO-8859-1 through ISO-8859-15
+* Unicode
+* UTF
+
+### Environment variables
+
+Use `locale` to print the environment variables that contain locale settings.
+
+Env locale format: `language_country.character set` for example `en_US.UTF-8`.
+
+Each `LC_` env variable represent a category of more environment variables that relate to the locale settings.
+
+To explore those variables: `locale -ck LC_MONETARY` this shows the variables in the LC_MONETARY environment variable.
+
+## Setting Your Locale
+
+Three components to how Linux handles localization: language, country and character set.
+
+### Installation Locale Decisions
+
+On the installation of the OS, a window will ask you to specify the country. After that the installation script automatically sets the environment variables.
+
+### Changing Your Locale
+
+You can eather change the environment variable manually or employ `localectl`.
+
+```bash
+export LANG=
+locale
+```
+
+The `LANG` environment variable will set the value to all `LC_*` environment variables.
+
+This only works for the current shell session. To preserve we need to add it on the `.bashrc` file so it runs on every login.
+
+With localectl:
+
+```bash
+localectl
+   System Locale: LANG=es_ES.UTF-8
+       VC Keymap: n/a
+      X11 Layout: es
+       X11 Model: pc105
+
+localectl set-locale LANG=en_GB.UTF-8
+```
+
+We can use `list-locales` to list installed locales and `set-locale` to set the locale.
+
+To convert a file from one charset to another we can employ the `iconv` command.
+
+## Looking at time
+
+Linux handles the time as two parts:
+
+* The time zone asociated with the location of the system
+* The actual time and date within that time zone
+
+### Working with Time Zones
+
+Local time zone in `/etc/timezone` for debian systems and `/etc/localtime` for Red Hat-based systems.
+
+Can't mod this files. Instead we copy a template from `/usr/share/zoneinfo`
+
+To determine the current time zone setting: `date`
+
+To change time zone:
+
+```bash
+sudo mv /etc/localtime /etc/localtime.bak
+sudo ln -s /usr/share/zoneinfo/US/Pacific /etc/localtime
+```
+
+We can employ `tzselect` to know the timezone based on some questions.
+
+To change the time zone only for the current session we can just change the `TZ` environment variable.
+
+### Setting the Time and Date
+
+#### Legacy commands
+
+`hwclock`: Display or set the time as kept on the internal BIOS or UEFI clock
+`date`: Displays or sets the date as kept by the Linux system
+
+With date we can display the current time with the format we cant employing the `+` option.
+
+```bash
+date +"%A, %B %d %Y"
+    lunes, abril 22 2024
+```
+
+We can also set the time and date on the Linux system:
+
+```bash
+date MMDDhhmm[[CC]YY][.SS]
+```
+
+#### The timedatectl Command
+
+If the system uses the systemd set of utilities we can emply `timedatectl`.
+
+By default it shows thetim and date settings.
+
+hardware clock is called RTC.
+
+To modify any of the settings seen in the output:
+
+```bash
+sudo timedatectl set-time "2019-08-02 06:15:00"
+```
+
+If the Linux system is conected to a NTP Server we won't be able to alter the time or date using either `date` or `timedatectl`.
+
+## Configuring Printing
+
+Common Unix Printing System (CUPS) provies a common interface for working with any type of printer.
+
+Accepts jobs using the PostScript document format and sends them to printers using a print queue system.
+
+There can be multiple queues assigned to a single printer or multiple printers can accept jobs assigned to a single print queue.
+
+CUPS uses the Ghostscript program to convert PostScript document into a format understood by different printers.
+
+Config file: `/etc/cups`
+
+Exposed in port TCP 631.
+
+We can also configure network printers using Internet Printing Protocol (IPP) or the Microsoft Server Message Block (SMB) protocol.
+
+We can use either the web interface or command-line tools to interact with CUPS.
+
+Commands:
+
+* `cancel`: Cancels a print request
+* `cupsaccept`: Enables queuing of print requets
+* `cupsdisable`: Disables he specified printer
+* `cupsenable`: Enables the specified printer
+* `cupsreject`: Rejects queuing of print requests
+
+CUPS also accepts legacy BSD commad-line printing utility:
+
+* `lpc`: Start, stop, or pause the print queue
+* `lpq`: Display the print queue status, along with any print jobs waiting in the queue
+* `lpr`: Submit a ew print job to a print queue
+* `lprm`: Remove a specific print job from the print queue
+
+Example of use:
+
+Show status, send a job and then check the status again.
+
+```bash
+lpq -P EPSON
+lpr -P EPSON test.txt
+lpq -P EPSON
+```
